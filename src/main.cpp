@@ -1,19 +1,10 @@
 #include <Geode/utils/web.hpp>
 
 #include <Geode/modify/LevelInfoLayer.hpp>
-#include <Geode/modify/LevelCell.hpp>
 
 using namespace geode::prelude;
 
 static std::unordered_map<int, std::string> links;
-
-class $modify(LevelCell) {
-    void loadFromLevel(GJGameLevel* level) {
-        if (!links.contains(level->m_levelID.value())) log::debug("{}", level->m_levelID.value());
-
-        LevelCell::loadFromLevel(level);
-    }
-};
 
 void loadLinks(bool startup = false) {
     auto req = web::WebRequest();

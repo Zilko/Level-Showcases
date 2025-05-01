@@ -40,7 +40,6 @@ Thanks a lot to the **[GD Archives](https://www.youtube.com/@gdarchives/)** bois
 
 Thanks to the rest of the channels that I got showcases from.
 
-* **[GD Archives](https://www.youtube.com/@gdarchives/)**
 * **[Viprin](https://www.youtube.com/@viprin/)**  
 * **[Nexus](https://www.youtube.com/@NexusGD10)**  
 * **[Neiro](https://www.youtube.com/@Neiro1999)**  

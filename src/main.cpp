@@ -75,19 +75,45 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
 
         if (!links.contains(level->m_levelID.value())) return true;
 
-        if (CCNode* lbl = getChildByID("title-label")) {
+        Loader::get()->queueInMainThread([this] {
+            CCNode* lbl = getChildByID("title-label");
+            if (!lbl) return;
+
+            CCNode* menu = getChildByID("other-menu");
+            if (!menu) return;
+
+            CCNode* garageMenu = getChildByID("garage-menu");
+            if (!garageMenu) return;
+
+            CCNode* garageButton = garageMenu->getChildByID("garage-button");
+            if (!garageButton) return;
+
             CCSprite* spr = CCSprite::createWithSpriteFrameName("gj_ytIcon_001.png");
-            spr->setScale(0.625f);
+            spr->setScale(0.65f);
+
             CCMenuItemSpriteExtra* btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(MyLevelInfoLayer::onShowcase));
-            btn->setAnchorPoint({0, 0.5f});
-            
-            if (CCNode* menu = getChildByID("other-menu")) {
-                menu->addChild(btn);
-                btn->setPositionX(lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() * 0.5f + 3.f);
-                btn->setPositionY(lbl->getPosition().y);
-                btn->setPosition(btn->getPosition() - menu->getPosition() - ccp(0, 1.4));
+            btn->setID("showcase-button"_spr);
+
+            menu->addChild(btn);
+
+            float labelEdge = lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() / 2.f;
+            float buttonOffset = btn->getContentSize().width / 2.f + 3.f;
+
+            float garagePos = garageMenu->getPosition().x - (garageMenu->getContentSize().width * (garageMenu->getLayout() ? 0.5f : 0.f));
+            float buttonLeftEdge = garagePos + garageButton->getPosition().x - (garageButton->getContentSize().width / 2.f);
+            float extra = labelEdge + 6.f + btn->getContentSize().width - buttonLeftEdge;
+
+            if (extra > 0) {
+                float targetWidth = (buttonLeftEdge - lbl->getPosition().x - 6.f - btn->getContentSize().width) * 2;
+                lbl->setScale(targetWidth / lbl->getContentSize().width);
             }
-        }
+
+            labelEdge = lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() / 2.f;
+
+            btn->setPositionX(labelEdge + buttonOffset);
+            btn->setPositionY(lbl->getPosition().y);
+            btn->setPosition(btn->getPosition() - menu->getPosition());
+        });
 
         return true;
     }

@@ -34,15 +34,17 @@ Thanks a lot to the **[GD Archives](https://www.youtube.com/@gdarchives/)** bois
 * **<cj>JuicyOrange</c>**  
 * **<cj>AndreiXYZ</c>**  
 * **<cj>Kyle</c>**  
-* **<cj>Rich</c>**  
-* **<cj>Kuiper</c>**  
+* **<cj>RichConnerGMN</c>**  
 * **<cj>CreativeAsh10</c>**
 
 Thanks to the rest of the channels that I got showcases from.
 
+* **[Basspirit GD](https://www.youtube.com/@basspiritgd/)** 33k videos!! 
 * **[Viprin](https://www.youtube.com/@viprin/)**  
 * **[Nexus](https://www.youtube.com/@NexusGD10)**  
-* **[Neiro](https://www.youtube.com/@Neiro1999)**  
+* **[Neiro](https://www.youtube.com/@Neiro1999)**
+* **[HemaGD](https://www.youtube.com/@HemaGD/)**
+* **[NQDGaming](https://www.youtube.com/@nqdgaminggd6606)**
 * **[GD Library](https://www.youtube.com/@GDLibrary-jo6fs/)**  
 * **[zof](https://www.youtube.com/@The_zof)**  
 * **[Cosmo](https://www.youtube.com/@VenomousCosmo/)**  

@@ -110,6 +110,11 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
 
             labelEdge = lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() / 2.f;
 
+            if (CCNode* dailyLbl = getChildByID("daily-label")) {
+                dailyLbl->setPositionX(dailyLbl->getPositionX() + btn->getContentSize().width + 4.f);
+                dailyLbl->setZOrder(dailyLbl->getZOrder() + 1);
+            }
+
             btn->setPositionX(labelEdge + buttonOffset);
             btn->setPositionY(lbl->getPosition().y);
             btn->setPosition(btn->getPosition() - menu->getPosition());

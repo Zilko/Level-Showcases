@@ -106,12 +106,13 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
             if (extra > 0) {
                 float targetWidth = (buttonLeftEdge - lbl->getPosition().x - 6.f - btn->getContentSize().width) * 2;
                 lbl->setScale(targetWidth / lbl->getContentSize().width);
-            }
+            } else
+                extra = 0;
 
             labelEdge = lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() / 2.f;
 
             if (CCNode* dailyLbl = getChildByID("daily-label")) {
-                dailyLbl->setPositionX(dailyLbl->getPositionX() + btn->getContentSize().width + 4.f);
+                dailyLbl->setPositionX(dailyLbl->getPositionX() + btn->getContentSize().width + 4.f - extra);
                 dailyLbl->setZOrder(dailyLbl->getZOrder() + 1);
             }
 

@@ -1,3 +1,8 @@
+# v1.1.0
+
+* Added an icon in Level Cells for levels that have a showcase.
+* Removed Krazyman50
+
 # v1.0.2
 
 * Fixed button being covered by the daily and weekly labels.

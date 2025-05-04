@@ -56,7 +56,6 @@ Thanks to the rest of the channels that I got showcases from.
 * **[Oculations](https://www.youtube.com/@Oculations)**
 * **[Horizon](https://www.youtube.com/@HorizonGD340)**
 * **[fnm04](https://www.youtube.com/@fnm04)**
-* **[KrazyMan50](https://www.youtube.com/@OfficialKrazyman50/)**
 * **[KrmaL](https://www.youtube.com/@KrmaL)**
 * **[That one guy with no views](https://www.youtube.com/@ThatOneGuyWithNoViews/)**
 * **[Extreme Demon Archive](https://www.youtube.com/@ExtremeDemonArchiveGD/)**

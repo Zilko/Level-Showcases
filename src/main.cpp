@@ -1,6 +1,7 @@
 #include <Geode/utils/web.hpp>
 
 #include <Geode/modify/LevelInfoLayer.hpp>
+#include <Geode/modify/LevelCell.hpp>
 
 using namespace geode::prelude;
 
@@ -122,6 +123,59 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
         });
 
         return true;
+    }
+
+};
+
+class $modify(LevelCell) {
+
+    void loadFromLevel(GJGameLevel* level) {
+        LevelCell::loadFromLevel(level);
+
+        if (Mod::get()->getSettingValue<bool>("disabled")) return;
+        if (!links.contains(level->m_levelID.value())) return;
+
+        Loader::get()->queueInMainThread([this] {
+            CCNode* mainLayer = getChildByID("main-layer");
+
+            if (!mainLayer) return;
+
+            CCNode* copyIcon = mainLayer->getChildByID("copy-indicator");
+            CCNode* objectIcon = mainLayer->getChildByID("high-object-indicator");
+
+            float scale = 1.f;
+            cocos2d::CCPoint pos = {0, 0};
+
+            CCSprite* showcaseIcon = CCSprite::create("showcase-icon.png"_spr);
+            showcaseIcon->setAnchorPoint({0, 0.5f});
+            showcaseIcon->setID("showcase-indicator"_spr);
+
+            if (copyIcon || objectIcon) {
+                CCNode* maxRight = objectIcon ? objectIcon : copyIcon;
+
+                if (copyIcon)
+                    if (copyIcon->getPositionX() > maxRight->getPositionX())
+                        maxRight = copyIcon;
+
+                scale = maxRight->getContentSize().width * maxRight->getScale() / showcaseIcon->getContentSize().width;
+                pos = maxRight->getPosition() + ccp(15, 0);
+            } else {
+                scale = getContentSize().height < 80 ? 0.8f : 1.f;
+
+                if (CCNode* mainMenu = mainLayer->getChildByID("main-menu"))
+                    if (CCNode* creatorName = mainMenu->getChildByID("creator-name")) {
+                        pos = mainMenu->getPosition() + creatorName->getPosition();
+                        pos += ccp(creatorName->getContentSize().width / 2.f + 5, -1);
+                    }
+            }
+
+            if (pos == ccp(0, 0)) return;
+
+            showcaseIcon->setPosition(pos);
+            showcaseIcon->setScale(scale);
+
+            mainLayer->addChild(showcaseIcon);
+        });
     }
 
 };

@@ -176,7 +176,7 @@ class $modify(MyLevelCell, LevelCell) {
                     
                     f->m_didSchedule = true;
                 } else
-                    unscheduleAllSelectors();
+                    unschedule(schedule_selector(MyLevelCell::setIconPosition));
             }
 
         if (pos == ccp(0, 0)) return f->m_showcaseIcon->setVisible(false);

@@ -1,3 +1,7 @@
+# v1.1.2
+
+* Fixed bug with transparent lists.
+
 # v1.1.1
 
 * Kinda fixed BetterInfo incompatibilty in Level Cells.

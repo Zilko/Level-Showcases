@@ -1,3 +1,10 @@
+# v1.1.1
+
+* Kinda fixed BetterInfo incompatibilty in Level Cells.
+* Added showcase icon in Level Cells toggle in settings.
+* Fixed disable not actually disabling.
+* Thanked Flingus in about.md cus i forgot earlier.
+
 # v1.1.0
 
 * Added an icon in Level Cells for levels that have a showcase.

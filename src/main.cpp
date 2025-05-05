@@ -72,7 +72,7 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
     bool init(GJGameLevel* level, bool challenge) {
         if (!LevelInfoLayer::init(level, challenge)) return false;
 
-        if (Mod::get()->getSettingValue<bool>("disabled")) return true;
+        if (Mod::get()->getSettingValue<bool>("disable")) return true;
 
         if (!links.contains(level->m_levelID.value())) return true;
 
@@ -127,54 +127,93 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
 
 };
 
-class $modify(LevelCell) {
+class $modify(MyLevelCell, LevelCell) {
+
+    struct Fields {
+        CCSprite* m_showcaseIcon = nullptr;
+
+        CCNode* m_mainLayer = nullptr;
+        CCNode* m_copyIcon = nullptr;
+        CCNode* m_objectIcon = nullptr;
+        CCNode* m_maxRight = nullptr;
+        CCNode* m_mainMenu = nullptr;
+        CCNode* m_creatorName = nullptr;
+
+        bool m_didSchedule = false;
+    };
+
+    void setIconPosition(float) {
+        auto f = m_fields.self();
+
+        float scale = 1.f;
+        cocos2d::CCPoint pos = {0, 0};
+
+        CCNode* maxRight = f->m_objectIcon ? f->m_objectIcon : f->m_copyIcon;
+
+        if (f->m_copyIcon || f->m_objectIcon) {
+            if (f->m_copyIcon)
+                if (f->m_copyIcon->getPositionX() > maxRight->getPositionX())
+                    maxRight = f->m_copyIcon;
+
+            scale = maxRight->getContentSize().width * maxRight->getScale() / f->m_showcaseIcon->getContentSize().width;
+            pos = maxRight->getPosition() + ccp(15, 0);
+        } else {
+            scale = getContentSize().height < 80 ? 0.8f : 1.f;
+
+            if (f->m_mainMenu)
+                if (f->m_creatorName) {
+                    pos = f->m_mainMenu->getPosition() + f->m_creatorName->getPosition();
+                    pos += ccp(f->m_creatorName->getContentSize().width / 2.f + 5, -1);
+                }
+        }
+
+        if (f->m_mainMenu)
+            if (f->m_creatorName) {
+                std::string name = static_cast<CCLabelBMFont*>(f->m_creatorName->getChildByType<CCLabelBMFont>(0))->getString();
+                if (name == "By -" && Loader::get()->isModLoaded("cvolton.betterinfo")) {
+                    if (!f->m_didSchedule)
+                        schedule(schedule_selector(MyLevelCell::setIconPosition), 0.1f);
+                    
+                    f->m_didSchedule = true;
+                } else
+                    unscheduleAllSelectors();
+            }
+
+        if (pos == ccp(0, 0)) return f->m_showcaseIcon->setVisible(false);
+
+        f->m_showcaseIcon->setPosition(pos);
+        f->m_showcaseIcon->setScale(scale);
+        f->m_showcaseIcon->setVisible(true);
+    }
 
     void loadFromLevel(GJGameLevel* level) {
         LevelCell::loadFromLevel(level);
 
-        if (Mod::get()->getSettingValue<bool>("disabled")) return;
+        if (Mod::get()->getSettingValue<bool>("disable") || Mod::get()->getSettingValue<bool>("disable-icon")) return;
         if (!links.contains(level->m_levelID.value())) return;
 
         Loader::get()->queueInMainThread([this] {
-            CCNode* mainLayer = getChildByID("main-layer");
+            auto f = m_fields.self();
 
-            if (!mainLayer) return;
+            f->m_mainLayer = getChildByID("main-layer");
+            if (!f->m_mainLayer) return;
+            
+            f->m_mainLayer = getChildByID("main-layer");
+            f->m_copyIcon = f->m_mainLayer->getChildByID("copy-indicator");
+            f->m_objectIcon = f->m_mainLayer->getChildByID("high-object-indicator");
 
-            CCNode* copyIcon = mainLayer->getChildByID("copy-indicator");
-            CCNode* objectIcon = mainLayer->getChildByID("high-object-indicator");
+            f->m_mainMenu = f->m_mainLayer->getChildByID("main-menu");
 
-            float scale = 1.f;
-            cocos2d::CCPoint pos = {0, 0};
+            if (f->m_mainMenu)
+                f->m_creatorName = f->m_mainMenu->getChildByID("creator-name");
 
-            CCSprite* showcaseIcon = CCSprite::create("showcase-icon.png"_spr);
-            showcaseIcon->setAnchorPoint({0, 0.5f});
-            showcaseIcon->setID("showcase-indicator"_spr);
+            f->m_showcaseIcon = CCSprite::create("showcase-icon.png"_spr);
+            f->m_showcaseIcon->setAnchorPoint({0, 0.5f});
+            f->m_showcaseIcon->setID("showcase-indicator"_spr);
 
-            if (copyIcon || objectIcon) {
-                CCNode* maxRight = objectIcon ? objectIcon : copyIcon;
+            f->m_mainLayer->addChild(f->m_showcaseIcon);
 
-                if (copyIcon)
-                    if (copyIcon->getPositionX() > maxRight->getPositionX())
-                        maxRight = copyIcon;
-
-                scale = maxRight->getContentSize().width * maxRight->getScale() / showcaseIcon->getContentSize().width;
-                pos = maxRight->getPosition() + ccp(15, 0);
-            } else {
-                scale = getContentSize().height < 80 ? 0.8f : 1.f;
-
-                if (CCNode* mainMenu = mainLayer->getChildByID("main-menu"))
-                    if (CCNode* creatorName = mainMenu->getChildByID("creator-name")) {
-                        pos = mainMenu->getPosition() + creatorName->getPosition();
-                        pos += ccp(creatorName->getContentSize().width / 2.f + 5, -1);
-                    }
-            }
-
-            if (pos == ccp(0, 0)) return;
-
-            showcaseIcon->setPosition(pos);
-            showcaseIcon->setScale(scale);
-
-            mainLayer->addChild(showcaseIcon);
+            setIconPosition(0.f);
         });
     }
 

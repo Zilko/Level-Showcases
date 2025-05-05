@@ -14,6 +14,8 @@ If you'd like to suggest a new showcase or report a broken link, please join the
 
 # THANKS
 
+Thanks <cg>**Flingus**</c> for making the icon for Level Cells!
+
 Thanks **[Sawblade]([user:14662713](https://github.com/SawBlade21))** for helping make the bot for the **[Discord Server.](https://discord.gg/RNjH2pdSrC)** hi
 
 Thanks a lot to the **[GD Archives](https://www.youtube.com/@gdarchives/)** bois that recorded most of the showcases and already had a spreadsheet with all links and level IDs, saved me a lot of work.

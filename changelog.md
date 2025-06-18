@@ -1,3 +1,7 @@
+# v1.1.3
+
+* Fix smol bug with link backups
+
 # v1.1.2
 
 * Fixed bug with transparent lists.

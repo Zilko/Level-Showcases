@@ -1,5 +1,5 @@
 {
-	"geode": "4.4.0",
+	"geode": "4.5.0",
 	"gd": {
 		"win": "2.2074",
 		"android": "2.2074",
@@ -7,7 +7,7 @@
 	},
 	"id": "zilko.level_showcases",
 	"name": "Level Showcases",
-	"version": "v1.1.2",
+	"version": "v1.1.3",
 	"developer": "Zilko",
 	"description": "links to showcases",
 	"dependencies": {

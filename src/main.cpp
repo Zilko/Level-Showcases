@@ -1,5 +1,4 @@
 #include <Geode/utils/web.hpp>
-
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/modify/LevelCell.hpp>
 
@@ -7,47 +6,54 @@ using namespace geode::prelude;
 
 static std::unordered_map<int, std::string> links;
 
-void loadLinks(bool startup = false) {
-    auto req = web::WebRequest();
+void parseLinks(const std::string& str) {
+    if (str.empty()) return;
+    
+    links.clear();
+    
+    std::istringstream iss(str);
+    std::string line;
 
+    while (getline(iss, line)) {
+        size_t delimiter_pos = line.find('|');
+        if (delimiter_pos == std::string::npos) continue;
+
+        int id = numFromString<int>(line.substr(0, delimiter_pos)).unwrapOr(0);
+        if (id == 0) continue;
+
+        std::string link = line.substr(delimiter_pos + 1);
+        if (link.empty()) return;
+
+        links[id] = link;
+    }
+}
+
+void loadLinks(bool startup = false) {
+    parseLinks(Mod::get()->getSavedValue<std::string>("saved-string"));
+    
+    auto req = web::WebRequest();
+    
     req.header("Content-Type", "application/json");
 
     req.get("https://raw.githubusercontent.com/ZiLko/Level-Showcases-Links/main/links").listen([startup] (web::WebResponse* e) { // wa
         auto res = e->string();
 
-        std::string linksString = "";
+        std::string linksString = res.unwrapOr("");
+        
+        bool err = linksString.size() < 100;
 
-        if (res.isErr()) {
-            if (Mod::get()->hasSavedValue("saved-string"))
-                linksString = Mod::get()->getSavedValue<std::string>("saved-string");
-            else {
-                if (startup) Notification::create("Level Showcases: Failed to load showcases.", NotificationIcon::Error)->show();
-                return log::error("Failed to load showcases (Startup: {}): {}", startup, res.unwrapErr());
-            }
+        if (err && links.empty()) {
+            if (startup)
+                Notification::create("Level Showcases: Failed to load showcases.", NotificationIcon::Error)->show();
+            
+            return log::error("Failed to load showcases (Startup: {}): {}", startup, res.unwrapErr());
+        } else if (!err) {
+            linksString = res.unwrap();
+            Mod::get()->setSavedValue("saved-string", linksString);
         }
-
-        links.clear();
-
-        linksString = res.unwrapOr("");
-
-        Mod::get()->setSavedValue("saved-string", linksString);
-
-        std::istringstream iss(linksString);
-        std::string line;
-
-        while (getline(iss, line)) {
-            size_t delimiter_pos = line.find('|');
-            if (delimiter_pos == std::string::npos) continue;
-
-            int id = numFromString<int>(line.substr(0, delimiter_pos)).unwrapOr(0);
-            if (id == 0) continue;
-
-            std::string link = line.substr(delimiter_pos + 1);
-            if (link.empty()) return;
-
-            links[id] = link;
-        }
-
+        
+        parseLinks(linksString);
+        
     });
 }
 

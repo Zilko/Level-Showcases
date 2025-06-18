@@ -1,6 +1,7 @@
 # v1.1.3
 
 * Fix smol bug with link backups
+* build for ios
 
 # v1.1.2
 

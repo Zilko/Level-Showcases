@@ -78,7 +78,7 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
     bool init(GJGameLevel* level, bool challenge) {
         if (!LevelInfoLayer::init(level, challenge)) return false;
 
-        if (m_levelType != GJLevelType::Saved) return true;
+        if (m_levelType == GJLevelType::Editor || m_levelType == GJLevelType::Local) return true;
 
         if (Mod::get()->getSettingValue<bool>("disable")) return true;
 
@@ -197,7 +197,7 @@ class $modify(MyLevelCell, LevelCell) {
     void loadFromLevel(GJGameLevel* level) {
         LevelCell::loadFromLevel(level);
 
-        if (level->m_levelType != GJLevelType::Saved) return;
+        if (m_levelType == GJLevelType::Editor || m_levelType == GJLevelType::Local) return;
         if (Mod::get()->getSettingValue<bool>("disable") || Mod::get()->getSettingValue<bool>("disable-icon")) return;
         if (!links.contains(level->m_levelID.value())) return;
 

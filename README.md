@@ -2,6 +2,8 @@
 
 Searches for level showcases across multiple YouTube channels and lets you access them directly in-game!!!!
 
+A button will appear next to the level name if theres a showcase for it.
+
 Showcases are refreshed every hour looking for new showcases in 10+ YouTube channels.
 
 **If you'd like to add a showcase channel to the watch list, let me know!!!!**

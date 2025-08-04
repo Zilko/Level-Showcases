@@ -1,3 +1,7 @@
+# v1.1.4
+
+* Fix some bug idk
+
 # v1.1.3
 
 * Fix smol bug with link backups

@@ -197,7 +197,7 @@ class $modify(MyLevelCell, LevelCell) {
     void loadFromLevel(GJGameLevel* level) {
         LevelCell::loadFromLevel(level);
 
-        if (m_levelType == GJLevelType::Editor || m_levelType == GJLevelType::Local) return;
+        if (level->m_levelType == GJLevelType::Editor || level->m_levelType == GJLevelType::Local) return;
         if (Mod::get()->getSettingValue<bool>("disable") || Mod::get()->getSettingValue<bool>("disable-icon")) return;
         if (!links.contains(level->m_levelID.value())) return;
 

@@ -2,8 +2,9 @@
 	"geode": "4.5.0",
 	"gd": {
 		"win": "2.2074",
-		"android": "2.2074",
-		"mac": "2.2074"
+		"mac": "2.2074",
+		"ios": "2.2074",
+		"android": "2.2074"
 	},
 	"id": "zilko.level_showcases",
 	"name": "Level Showcases",
@@ -11,10 +12,7 @@
 	"developer": "Zilko",
 	"description": "links to showcases",
 	"dependencies": {
-		"geode.node-ids": {
-			"importance": "required",
-			"version": ">=1.20.1"
-		}
+		"geode.node-ids": ">=1.20.1"
 	},
 	"links": {
 		"source": "https://github.com/ZiLko/Level-Showcases",

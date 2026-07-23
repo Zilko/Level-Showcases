@@ -1,6 +1,9 @@
+#include <Geode/Geode.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/modify/LevelCell.hpp>
+
+#include <regex>
 
 using namespace geode::prelude;
 
@@ -29,32 +32,31 @@ void parseLinks(const std::string& str) {
 }
 
 void loadLinks(bool startup = false) {
-    parseLinks(Mod::get()->getSavedValue<std::string>("saved-string"));
-    
-    auto req = web::WebRequest();
-    
-    req.header("Content-Type", "application/json");
+    parseLinks(Mod::get()->getSavedValue<std::string>("links"));
 
-    req.get("https://raw.githubusercontent.com/ZiLko/Level-Showcases-Links/main/links").listen([startup] (web::WebResponse* e) { // wa
-        auto res = e->string();
+    async::spawn(
+        [] {
+            return web::WebRequest().get(
+                "https://raw.githubusercontent.com/Curtsydamp/level-showcases/refs/heads/main/links"
+            );
+        },
+        [startup](web::WebResponse res) {
+            auto result = res.string();
+            auto str = result.unwrapOr("");
 
-        std::string linksString = res.unwrapOr("");
-        
-        bool err = linksString.size() < 100;
+            if (!result.isOk() || str.empty() || str.size() < 100) {
+                if (startup) {
+                    Notification::create("Level Showcases: Failed to load showcases.", NotificationIcon::Error)->show();
+                }
 
-        if (err && links.empty()) {
-            if (startup)
-                Notification::create("Level Showcases: Failed to load showcases.", NotificationIcon::Error)->show();
-            
-            return log::error("Failed to load showcases (Startup: {}): {}", startup, res.unwrapErr());
-        } else if (!err) {
-            linksString = res.unwrap();
-            Mod::get()->setSavedValue("saved-string", linksString);
+                return;
+            }
+
+            Mod::get()->setSavedValue("links", str);
+
+            parseLinks(str);
         }
-        
-        parseLinks(linksString);
-        
-    });
+    );
 }
 
 $on_mod(Loaded) {
@@ -62,7 +64,7 @@ $on_mod(Loaded) {
     if (!Mod::get()->getSettingValue<bool>("disable"))
         loadLinks(true);
 
-    geode::listenForSettingChanges("disable", +[](bool value) {
+    geode::listenForSettingChanges<bool>("disable", [](bool value) {
         if (!value)
             loadLinks(false);
     });
@@ -75,59 +77,108 @@ class $modify(MyLevelInfoLayer, LevelInfoLayer) {
         geode::utils::web::openLinkInBrowser("https://www.youtube.com/watch?v=" + links.at(m_level->m_levelID.value()));
     }
 
+    void addButo() {
+        CCNode* lbl = getChildByID("title-label");
+        if (!lbl) return;
+
+        CCNode* menu = getChildByID("other-menu");
+        if (!menu) return;
+
+        CCNode* garageMenu = getChildByID("garage-menu");
+        if (!garageMenu) return;
+
+        CCNode* garageButton = garageMenu->getChildByID("garage-button");
+        if (!garageButton) return;
+
+        CCSprite* spr = CCSprite::createWithSpriteFrameName("gj_ytIcon_001.png");
+        spr->setScale(0.65f);
+
+        CCMenuItemSpriteExtra* btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(MyLevelInfoLayer::onShowcase));
+        btn->setID("showcase-button"_spr);
+
+        menu->addChild(btn);
+
+        float labelEdge = lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() / 2.f;
+        float buttonOffset = btn->getContentSize().width / 2.f + 3.f;
+
+        float garagePos = garageMenu->getPosition().x - (garageMenu->getContentSize().width * (garageMenu->getLayout() ? 0.5f : 0.f));
+        float buttonLeftEdge = garagePos + garageButton->getPosition().x - (garageButton->getContentSize().width / 2.f);
+        float extra = labelEdge + 6.f + btn->getContentSize().width - buttonLeftEdge;
+
+        if (extra > 0) {
+            float targetWidth = (buttonLeftEdge - lbl->getPosition().x - 6.f - btn->getContentSize().width) * 2;
+            lbl->setScale(targetWidth / lbl->getContentSize().width);
+        } else
+            extra = 0;
+
+        labelEdge = lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() / 2.f;
+
+        if (CCNode* dailyLbl = getChildByID("daily-label")) {
+            dailyLbl->setPositionX(dailyLbl->getPositionX() + btn->getContentSize().width + 4.f - extra);
+            dailyLbl->setZOrder(dailyLbl->getZOrder() + 1);
+        }
+
+        btn->setPositionX(labelEdge + buttonOffset);
+        btn->setPositionY(lbl->getPosition().y);
+        btn->setPosition(btn->getPosition() - menu->getPosition());
+    }
+
     bool init(GJGameLevel* level, bool challenge) {
         if (!LevelInfoLayer::init(level, challenge)) return false;
 
-        if (m_levelType == GJLevelType::Editor || m_levelType == GJLevelType::Local) return true;
+        if (m_levelType == GJLevelType::Editor || m_levelType == GJLevelType::Main) return true;
 
         if (Mod::get()->getSettingValue<bool>("disable")) return true;
 
-        if (!links.contains(level->m_levelID.value())) return true;
+        if (!links.contains(level->m_levelID.value())) {
+            auto id = m_level->m_levelID.value();
 
-        Loader::get()->queueInMainThread([this] {
-            CCNode* lbl = getChildByID("title-label");
-            if (!lbl) return;
+            async::spawn(
+                [id] {
+                    return web::WebRequest().get(
+                        fmt::format("https://api.gdarchives.org/level/{}", id)
+                    );
+                },
+                [id, self = Ref(this)](web::WebResponse res) {
+                    auto result = res.json();
 
-            CCNode* menu = getChildByID("other-menu");
-            if (!menu) return;
+                    if (!result.isOk()) {
+                        return;
+                    }
 
-            CCNode* garageMenu = getChildByID("garage-menu");
-            if (!garageMenu) return;
+                    auto json = result.unwrap();
+                    auto videoId = std::string{};
 
-            CCNode* garageButton = garageMenu->getChildByID("garage-button");
-            if (!garageButton) return;
+                    static const std::regex regexe(R"((?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11}))");
 
-            CCSprite* spr = CCSprite::createWithSpriteFrameName("gj_ytIcon_001.png");
-            spr->setScale(0.65f);
+                    if (json.contains("link")) {
+                        if (json["link"].isArray() && json["link"].size() >= 1) {
+                            std::smatch match;
+                            std::string str = json["link"][0].asString().unwrapOr("");
+                            if (std::regex_search(str, match, regexe)) {
+                                videoId = match[1];
+                            }
+                        } else if (json["link"].asString().isOk()) {
+                            std::smatch match;
+                            std::string str = json["link"].asString().unwrapOr("");
+                            if (std::regex_search(str, match, regexe)) {
+                                videoId = match[1];
+                            }
+                        }
+                    }
 
-            CCMenuItemSpriteExtra* btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(MyLevelInfoLayer::onShowcase));
-            btn->setID("showcase-button"_spr);
+                    if (!videoId.empty()) {
+                        links[id] = videoId;
+                        self->addButo();
+                    }
+                }
+            );
 
-            menu->addChild(btn);
+            return true;
+        }
 
-            float labelEdge = lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() / 2.f;
-            float buttonOffset = btn->getContentSize().width / 2.f + 3.f;
-
-            float garagePos = garageMenu->getPosition().x - (garageMenu->getContentSize().width * (garageMenu->getLayout() ? 0.5f : 0.f));
-            float buttonLeftEdge = garagePos + garageButton->getPosition().x - (garageButton->getContentSize().width / 2.f);
-            float extra = labelEdge + 6.f + btn->getContentSize().width - buttonLeftEdge;
-
-            if (extra > 0) {
-                float targetWidth = (buttonLeftEdge - lbl->getPosition().x - 6.f - btn->getContentSize().width) * 2;
-                lbl->setScale(targetWidth / lbl->getContentSize().width);
-            } else
-                extra = 0;
-
-            labelEdge = lbl->getPosition().x + lbl->getContentSize().width * lbl->getScale() / 2.f;
-
-            if (CCNode* dailyLbl = getChildByID("daily-label")) {
-                dailyLbl->setPositionX(dailyLbl->getPositionX() + btn->getContentSize().width + 4.f - extra);
-                dailyLbl->setZOrder(dailyLbl->getZOrder() + 1);
-            }
-
-            btn->setPositionX(labelEdge + buttonOffset);
-            btn->setPositionY(lbl->getPosition().y);
-            btn->setPosition(btn->getPosition() - menu->getPosition());
+        Loader::get()->queueInMainThread([this, _ = Ref(this)] {
+            this->addButo();
         });
 
         return true;
@@ -197,11 +248,11 @@ class $modify(MyLevelCell, LevelCell) {
     void loadFromLevel(GJGameLevel* level) {
         LevelCell::loadFromLevel(level);
 
-        if (level->m_levelType == GJLevelType::Editor || level->m_levelType == GJLevelType::Local) return;
+        if (level->m_levelType == GJLevelType::Editor || level->m_levelType == GJLevelType::Main) return;
         if (Mod::get()->getSettingValue<bool>("disable") || Mod::get()->getSettingValue<bool>("disable-icon")) return;
         if (!links.contains(level->m_levelID.value())) return;
 
-        Loader::get()->queueInMainThread([this] {
+        Loader::get()->queueInMainThread([this, _ = Ref(this)] {
             auto f = m_fields.self();
 
             f->m_mainLayer = getChildByID("main-layer");
